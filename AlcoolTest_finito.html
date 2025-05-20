@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alcool Test</title>
+    <style>
+        body {
+            font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif; 
+            margin: 30px;
+            background-color: lightskyblue;
+        }
+         
+        h2 { 
+            text-align: center;
+            background-color: red;
+            color: yellow 
+        }
+
+        label {
+            color: black;
+        }
+        h3 { 
+            color:black
+        }
+
+        button{
+            font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif; 
+            font-size: 17px;
+            background-color: red;
+            color: yellow;
+            border-top-color:red;
+            border-right-color:red;
+            border-left-color:red;
+            border-bottom-color:red;
+        }
+        button:hover{
+            font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif; 
+            background-color: darkblue;
+            border-top-color:darkblue;
+            border-right-color:darkblue;
+            border-left-color:darkblue;
+            border-bottom-color:darkblue;
+        }
+        
+        .risultato {
+            font-weight: bold;
+            font-size: 18px;
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        
+        .sicuro {
+            background-color: green;
+            color: white;
+        }
+        
+        .attenzione {
+            background-color: yellow;
+            color: black;
+        }
+        
+        .pericolo {
+            background-color: red;
+            color: white;
+        }
+        
+        .tempo-input {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+<h2> CALCOLO TASSO ALCOLEMICO </h2>
+
+<h3>PESO (KG):</h3>
+<label>
+    <input type="number" id="peso">
+</label>
+
+<br>
+<br>
+<h3>SESSO:</h3>
+
+<form>
+<input type="radio" id="uomo" name="sesso" value="uomo">
+<label for="uomo">Uomo</label><br>
+<input type="radio" id="donna" name="sesso" value="donna">
+<label for="donna">Donna</label><br>
+</form>
+
+<h3>BEVANDE ALCOLICHE ASSUNTE:</h3>
+
+<form>
+    <input type="checkbox" id="birra" name="bevanda" value="birra">
+    <label for="birra">Birra</label><br>
+    <input type="checkbox" id="superalcolici" name="bevanda" value="super">
+    <label for="superalcolici">Super alcolici</label><br>
+    <input type="checkbox" id="vino" name="bevanda" value="vino">
+    <label for="vino">Vino</label>
+</form>
+
+<h3>Quante ne hai assunte?</h3>
+<label>
+    <input type="number" id="quantita">
+</label>
+
+<h3>Da quanto tempo hai bevuto? (minuti)</h3>
+<label>
+    <input type="number" id="tempo" min="0" step="1" class="tempo-input">
+</label>
+
+<h3>Stomaco:</h3>
+<input type="radio" id="pieno" name="stomaco" value="pieno">
+<label for="pieno">Stomaco pieno</label><br>
+<input type="radio" id="vuoto" name="stomaco" value="vuoto">
+<label for="vuoto">Stomaco vuoto</label><br>
+
+<br>
+<button type="button" onclick="calcolaAlcol()">CALCOLA TASSO ALCOLEMICO</button>
+<br>
+
+<div class="risultato" id="risultato"></div>
+
+<script>
+    function calcolaAlcol() {
+        // Ottieni i valori dal form
+        let peso = parseFloat(document.getElementById("peso").value);
+        if (isNaN(peso) || peso <= 0) {
+            alert("Inserisci un peso valido!");
+            return;
+        }
+        
+        let sesso = document.querySelector('input[name="sesso"]:checked')?.value;
+        if (!sesso) {
+            alert("Seleziona il sesso!");
+            return;
+        }
+        
+        let bevanda = document.querySelector('input[name="bevanda"]:checked')?.value;
+        if (!bevanda) {
+            alert("Seleziona almeno una bevanda!");
+            return;
+        }
+        
+        let quantita = parseInt(document.getElementById("quantita").value);
+        if (isNaN(quantita) || quantita <= 0) {
+            alert("Inserisci una quantità valida!");
+            return;
+        }
+        
+        let tempoMinuti = parseInt(document.getElementById("tempo").value) || 0;
+        if (tempoMinuti < 0) {
+            alert("Il tempo non può essere negativo!");
+            return;
+        }
+        
+        let stomaco = document.querySelector('input[name="stomaco"]:checked')?.value;
+        if (!stomaco) {
+            alert("Seleziona lo stato dello stomaco!");
+            return;
+        }
+        
+        // Calcola il tasso alcolemico
+        let gradazione;
+        let volume; // in ml
+        
+        if (bevanda === "birra") {
+            gradazione = 0.05;
+            volume = 330;
+        } else if (bevanda === "vino") {
+            gradazione = 0.12;
+            volume = 150;
+        } else if (bevanda === "super") {
+            gradazione = 0.40;
+            volume = 40;
+        }
+        
+        const alcolInGr = quantita * volume * gradazione * 0.8;
+        const coeff = sesso === "uomo" ? 0.7 : 0.6;
+        let tasso = alcolInGr / (peso * coeff);
+        
+        if (stomaco === "vuoto") tasso *= 1.2;
+        
+        // Converti minuti in ore per il calcolo dello smaltimento
+        let tempoOre = tempoMinuti / 60;
+        
+        // Calcolo dello smaltimento (circa 0.15 g/l per ora)
+        const smaltimento = tempoOre * 0.15;
+        tasso = Math.max(0, tasso - smaltimento);
+        
+        // Mostra il risultato con il colore appropriato
+        let risultato = document.getElementById("risultato");
+        let messaggio = `Il tuo tasso alcolemico stimato è: ${tasso.toFixed(3)} g/l\n`;
+        
+        
+        if (tasso < 0.5) {
+            messaggio += "✅ SEI NEI LIMITI LEGALI PER LA GUIDA";
+            risultato.className = "risultato sicuro";
+        } else if (tasso >= 0.5 && tasso < 0.8) {
+            messaggio += "⚠️ ATTENZIONE: SEI AL LIMITE LEGALE (0.5 g/l)";
+            risultato.className = "risultato attenzione";
+        } else {
+            messaggio += "❌ PERICOLO: HAI SUPERATO IL LIMITE LEGALE PER LA GUIDA!";
+            risultato.className = "risultato pericolo";
+        }
+        
+       
+        
+        risultato.innerText = messaggio;
+    }
+</script>
+</body>
+</html>
